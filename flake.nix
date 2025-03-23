@@ -12,12 +12,9 @@
       systems 
     }:
     let
-      supportedSystems = [ "x86_64-linux" "aarch64-darwin" "x86_64-darwin" "aarch64-linux" ];
+      supportedSystems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forEachSupportedSystem = f: nixpkgs.lib.genAttrs supportedSystems (system: f {
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ self.overlays.default ];
-        };
+        pkgs = nixpkgs.legacyPackages.${system};
       });
     in
     {
@@ -30,5 +27,9 @@
           '';
         };
       };
+      # necessary to pass CI; there needs to be at least one per-system output
+      packages = forEachSupportedSystem ({ pkgs }: {
+        default = pkgs.hello;
+      });
     };
 }
